@@ -1,0 +1,188 @@
+---
+title: "MOTIF_Search"
+author: "David James"
+date: "15/02/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+```{r libraries}
+library(memes)
+library(universalmotif)
+library(magrittr)
+library(motifStack)
+library(readxl)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(GenomicRanges)
+library(ChIPpeakAnno)
+library(stringr)
+library(WebGestaltR)
+```
+
+```{r}
+outDr <- "/data/DaveJames/OC_Epigenetics_Paper/ScriptsForGitHub/testScripts/"
+outFn <- "ClearcellMOTIFSearch"
+homoSapGenome <- BSgenome.Hsapiens.UCSC.hg38
+```
+
+## 1 Load required files
+
+```{r}
+# 1 Load GeneHancer
+gh <- read.table("/data/DaveJames/OC_Epigenetics_Paper/genehancer.gff", stringsAsFactors = F, header = T, sep = "\t")
+ghGr <- toGRanges(gh, format = "GFF")
+ghGrEn <- ghGr[(ghGr$feature.name == "Enhancer" | ghGr$feature.name == "Promoter/Enhancer") ]
+
+# 2 Load and filter upregulated enhancers from MAGIC output
+MAGIC_TFs <- read_excel("/data/DaveJames/OC_Epigenetics_Paper/MAGIC_Enhancers050222_AllInBk/Cc_UP/Cc_UP_Summary.xls")
+
+# 3 Filter the factors 
+MAGIC_TFs_P0p1 <- MAGIC_TFs[MAGIC_TFs$`Corrected p` < 0.01,] # set P as 0.01
+Facs <- gsub("eGFP-|3xFLAG-", "", MAGIC_TFs_P0p1$Factor)
+
+# 4 Load the background enhancer sites
+UpReg <- read.csv("/data/DaveJames/OC_Epigenetics_Paper/MAGIC_Enhancers050222_AllInBk/Cc_En_Up_AllBk.txt", sep = "\t", header = T)
+colnames(UpReg) <- c("Background", "Upreg")
+
+UpRegEnhancers <- UpReg$Upreg[!(UpReg$Upreg == "")]
+
+```
+
+## 2 Get the sequences within the upregulated and background enhancers
+```{r}
+UpRegEnhancersIdx <- gsub("GENEHANCER_", "", UpRegEnhancers)
+
+UpRegGR <- ghGr[gsub("X0*", "", (ghGr@ranges@NAMES))  %in% UpRegEnhancersIdx]
+
+EnhancerSeqs <- get_sequence(UpRegGR, homoSapGenome)
+
+AllGenome_EnhancerSeqs <- get_sequence(ghGrEn, homoSapGenome)
+
+## Get sequences of the background
+BackGroundIdx <- gsub("GENEHANCER_", "", UpReg$Background)
+BackGroundGR <- ghGr[gsub("X0*", "", (ghGr@ranges@NAMES))  %in% BackGroundIdx]
+
+BackgroundSeqs <- get_sequence(BackGroundGR, homoSapGenome)
+```
+
+## 3 Get the MOTIF PWM
+```{r}
+
+getPWM <- function(gnSym){
+  
+  motif <- tryCatch(MotifDb::MotifDb %>%
+                      # Query the database for the E93 motif using it's gene name
+                      MotifDb::query(gnSym, 'hsapiens') %>%
+                      # Convert from motifdb format to universalmotif format
+                      universalmotif::convert_motifs() %>%
+                      # The result is a list, to simplify the object, return it as a single universalmotif
+                      .[[1]] , 
+                    error = function(e){NULL})
+  
+}
+
+PWMs <- lapply(Facs, getPWM)
+
+```
+
+## 4 Find enhancers which contain each of the enriched TF motifs
+```{r}
+
+tfEnhancerColoc <- vector(mode = "list", length = length(PWMs))
+tfEnhancerColocGr <- vector(mode = "list", length = length(PWMs))
+tfEnhancerColocGh <- vector(mode = "list", length = length(PWMs))
+
+tfEnhancerGhGenes <- vector(mode = "list", length = length(PWMs))
+tfEnhancerGhGenes2 <- vector(mode = "list", length = length(PWMs))
+tfEnhancerGhGenesScores <- vector(mode = "list", length = length(PWMs))
+
+tfUpRegGeneOvlp <- vector(mode = "list", length = length(PWMs)) # list of overlapping gh genes and upregulated genes
+
+tfEnhancerGenesDF <- vector(mode = "list", length = length(PWMs) )
+
+```
+
+## 5 Check if 
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+
+for (dx in 1:length(PWMs)){
+  ## Empirical test
+  print(paste("Getting MOTIFs for" , Facs[[dx]], "idx =", dx, "Length of tfEnhancerColoc:", length(tfEnhancerColoc)))
+  ## 1 Get the MOTIF in all genehancer enhancers
+  
+  ## MOTIF analysis
+  if (!is.null(PWMs[[dx]])){
+    x <- runFimo(EnhancerSeqs, PWMs[dx], parse_genomic_coord = FALSE)
+    file.remove((list.files(tempdir(), ".fa|.meme", full.names = T))) # remove the temp files 
+    if (!is.null(x)){
+      
+      tfEnhancerColoc[dx] <- x
+      
+    }
+  
+    if(!is.null(tfEnhancerColoc[[dx]])){
+  ## Get the genehancer sites      
+    tfEnhancerColocGr[dx] <- GRanges(seqnames = sub( ":\\d*-\\d*", "", (levels(tfEnhancerColoc[[dx]]@seqnames))),
+                                     ranges = IRanges(start = as.numeric(str_match((levels(tfEnhancerColoc[[dx]]@seqnames)), ":(\\d*)-\\d*")[, 2]),
+                                                      end = as.numeric(str_match((levels(tfEnhancerColoc[[dx]]@seqnames)), ":\\d*-(\\d*)")[, 2])))
+    
+    tfEnhancerColocGh[dx] <- ghGr[findOverlaps(tfEnhancerColocGr[[dx]], ghGr)@to]}
+  }
+  
+}
+
+```
+
+## 6 
+```{r}
+tfMOTIF_AllEnhancers <- vector(mode = "list", length = length(PWMs) )
+tfMOTIF_AllEnhancersWithMOTIFs <- vector(mode = "list", length = length(PWMs) )
+tfMOTIF_AllEnhancersPValue <- vector(mode = "list", length = length(PWMs) )
+
+
+for (dx in 1:length(tfEnhancerColoc)){
+#for (dx in 1:2){
+  print(paste0("Sample ", dx, " of ", length(tfEnhancerColoc), " from " , Facs[dx]))
+  
+  if (!is.null(tfEnhancerColoc[[dx]])) {
+    tfMOTIF_AllEnhancers[[dx]] <- runFimo(AllGenome_EnhancerSeqs, PWMs[dx], parse_genomic_coord = FALSE) # P vlaue using all enhancers
+    file.remove((list.files(tempdir(), ".fa|.meme", full.names = T))) # remove the temp files 
+    ## 2 Find the genehancer enhancers with the MOTIF  
+    tfMOTIF_AllEnhancersWithMOTIFs[[dx]] <- GRanges(seqnames = sub( ":\\d*-\\d*", "", (levels(tfMOTIF_AllEnhancers[[dx]]@seqnames))),
+                                                    ranges = IRanges(start = as.numeric(str_match((levels(tfMOTIF_AllEnhancers[[dx]]@seqnames)), ":(\\d*)-\\d*")[, 2]), 
+                                                                     end = as.numeric(str_match((levels(tfMOTIF_AllEnhancers[[dx]]@seqnames)), ":\\d*-(\\d*)")[, 2])))
+    
+    ## 3 Find the 
+    smpN <- 1000
+    rndTFsNo <- rep(0, smpN)
+    
+    for (px in 1:smpN){
+      if (!(px %% 200)){
+        print(px)
+      }
+      rndEn <- ghGrEn[sample(length(ghGrEn), length(UpRegEnhancers))]
+      #rndEn <- Clearcell_BackGroundGR[sample(length(Clearcell_BackGroundGR), length(Clearcell_UpRegEnhancers))]
+      rndTFsNo[px] <- length(findOverlaps(rndEn, tfMOTIF_AllEnhancersWithMOTIFs[[dx]]))
+    }
+    
+    tfMOTIF_AllEnhancersPValue[[dx]] <- sum(rndTFsNo >= length(tfEnhancerColocGh[[dx]]))/smpN
+  }
+}
+```
+
+## 7 
+```{r}
+
+pNotNullIdx <- !unlist(lapply(tfMOTIF_AllEnhancersPValue, is.null))
+
+outDf <- data.frame(Facs = HGSC_Facs, P = 100)
+outDf$P[pNotNullIdx] <- unlist(tfMOTIF_AllEnhancersPValue)
+
+write.csv(outDf, file.path(outDr, outFn, ".csv"), quote = F)
+```

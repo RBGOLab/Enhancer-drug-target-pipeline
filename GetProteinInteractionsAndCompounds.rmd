@@ -1,0 +1,154 @@
+---
+title: "GetProteinInteractionsAndCompounds"
+author: "David James"
+date: "15/02/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries
+
+```{r}
+library(dplyr)
+library(EnsDb.Hsapiens.v86)
+library(DBI)
+#library(xlsx)
+```
+ 
+## 1 Load 
+```{r}
+Facs <- read.table("/data/DaveJames/OC_Epigenetics_Paper/MAGIC_Enhancers050222_AllInBk/ComplexesAndCompoundsPFiltered/MucinousPrimeEnhComplexesGE.csv", header = T, sep = "\t")
+```
+ 
+## 2 Load  
+
+```{r}
+chemProtInt <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/9606.protein_chemical.links.detailed.v5.0.tsv", sep = "\t", header = T)
+chemChemInt <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/chemical_chemical.links.detailed.v5.0.tsv", sep = "\t", header = T)
+
+chemSources <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/chemical.sources.v5.0.tsv", sep = "\t", header = T, row.names = NULL)
+colnames(chemSources) <- c("CIDm","CIDs", "Source", "ID")
+chemSourcesChEMBL <- chemSources[chemSources$Source == "ChEMBL",]
+```
+
+## 3
+```{r}
+ensembl <- EnsDb.Hsapiens.v86
+gns2Prots <- select(ensembl, keys = unique(Mucinous_Facs$GENE_ID_Check), columns = c("GENENAME", "GENEID", "PROTEINID", "TXBIOTYPE"), keytype =  ("GENEID"))
+gns2Prots <- gns2Prots[gns2Prots$TXBIOTYPE == "protein_coding",]
+
+## Find protein interactions in stitch
+
+chemProtInt2 <- chemProtInt
+chemProtInt2$PROTEINID <- gsub("9606.", "", chemProtInt$protein)
+
+prtStitchJoin <- dplyr::inner_join(gns2Prots, chemProtInt2, by = "PROTEINID")
+prtStitchJoinExp400 <- prtStitchJoin[prtStitchJoin$database > 400,]
+
+
+prtStitchJoinExp400_ChEMBL <- dplyr::inner_join(prtStitchJoinExp400, chemSourcesChEMBL, by = c("chemical" = "CIDm")) # get the chEMBL links
+
+```
+
+## 4
+```{r}
+con <- dbConnect(RMySQL::MySQL(), 
+                 user = "dave",
+                 password = "FourLegsWordRate",
+                 dbname = "chembl_29"
+                    )
+# # Get table names
+tables <- dbListTables(con)
+
+drugsMucinous <- NULL 
+
+cmpsNoDrugData <- NULL
+
+drugsMucinous_NoOVarian <- NULL
+
+cnt <- 1
+for (dx in unique(prtStitchJoinExp400_ChEMBL$ID)) {
+
+  q <- dbGetQuery(con, paste0("SELECT md.chembl_id, md.pref_name, md.max_phase, 
+                             md.molecule_type, md.first_approval, dm.mechanism_of_action, dm.action_type,
+                             md.molregno, dm.molregno FROM molecule_dictionary as md 
+                             INNER JOIN drug_mechanism as dm ON  md.molregno = dm.molregno WHERE md.chembl_id = '", dx ,"';" ))
+  
+  qq <- dbGetQuery(con, paste0("SELECT md.chembl_id, ms.synonyms 
+                               FROM molecule_dictionary as md 
+                               INNER JOIN molecule_synonyms as ms 
+                               ON  md.molregno = ms.molregno 
+                               WHERE md.chembl_id = '", dx ,"';"))
+  
+  qqq <- data.frame(chembl_id = qq[1, 1], synonyms = paste(unique(qq[, 2]), collapse = " | "))
+  
+  qOvCar <- dbGetQuery(con, paste0("SELECT md.chembl_id, md.pref_name, md.max_phase, 
+                             md.molecule_type, md.first_approval,
+                             md.molregno, di.molregno FROM molecule_dictionary as md INNER JOIN drug_indication 
+                                    as di ON  md.molregno = di.molregno 
+                                    WHERE (di.efo_term LIKE '%ovarian carcinoma%' OR
+                                    di.efo_term LIKE '%ovarian cancer%' OR
+                                    di.efo_term LIKE '%tumor of ovary%' OR
+                                    di.efo_term LIKE '%ovarian neoplasm%' OR
+                                    di.efo_term LIKE '%ovarian serous%' OR
+                                    di.efo_term LIKE '%ovarian Embryonal Carcinoma%' OR
+                                    di.efo_term LIKE 'Hereditary breast and ovarian cancer syndrome' OR
+                                    di.efo_term LIKE '%ovarian cyst%')
+                                   AND md.chembl_id = '", dx ,"';"
+    
+  ))
+  
+  if(is.null(drugsMucinous) & !all(isEmpty(q))){
+    
+    drugsMucinous <- cbind(q, synonyms = qqq[, 2])
+    
+  }
+  
+  if (!all(isEmpty(q))) {
+  drugsMucinous <- rbind(drugsMucinous, cbind(q, synonyms = qqq[, 2]))
+  
+  
+    if (all(isEmpty(qOvCar))){
+      
+      
+      if (is.null(drugsMucinous_NoOVarian)){
+        
+        drugsMucinous_NoOVarian <- cbind(q, synonyms = qqq[, 2])
+        
+      } else {
+        
+        drugsMucinous_NoOVarian <- rbind(drugsMucinous_NoOVarian, cbind(q, synonyms = qqq[, 2]))
+        
+      }
+      
+    }
+  
+  
+  } else # For writing the non trialed drugs
+  {
+  
+    # Write synomys with drug
+    if (is.null(cmpsNoDrugData)){
+    
+      cmpsNoDrugData <- qqq
+    
+    } else {
+    
+      cmpsNoDrugData <- rbind(cmpsNoDrugData, qqq)
+    
+    }
+
+}
+  cnt = cnt + 1
+  
+}
+
+drugsMucinousUnique <- unique(drugsMucinous)
+drugsMucinous_NoOvCanUnique <- unique(drugsMucinous_NoOVarian)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

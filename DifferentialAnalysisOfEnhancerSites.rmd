@@ -1,0 +1,201 @@
+---
+title: "DifferentialAnalysisOfEnhancerSites"
+author: "David James"
+date: "14/02/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+This markdown document performs the main functions 
+
+## Load libraries
+
+```{r libraries}
+# Libraries
+library(DiffBind)
+source("/data/DaveJames/RScripts/createDiffBindTable.R")
+library(parallel)
+library(rtracklayer)
+library(stringr)
+library(ChIPpeakAnno)
+#source("/data/DaveJames/RScripts/DBA_Helper_Functions.r")
+
+```
+
+```{r}
+## Prefix is used to label output files
+prefix = "HGSC_Cl_1FC_Cutoff"
+outDr = "/data/DaveJames/OC_Epigenetics_Paper/ScriptsForGitHub/testScripts/"
+```
+
+## 1. Load GeneHancer database into GRanges object
+To get the annotated enhancer locations for differential
+
+```{r genhancer, echo=FALSE}
+gh <- read.table("/data/DaveJames/OC_Epigenetics_Paper/genehancer.gff", stringsAsFactors = F, header = T, sep = "\t")
+ghGr <- toGRanges(gh, format = "GFF")
+ghGrEn <- ghGr[(ghGr$feature.name == "Enhancer" | ghGr$feature.name == "Promoter/Enhancer") ]
+```
+
+## 2. Load Required files for comparisons
+
+1) 
+```{r pressure, echo=FALSE}
+
+# Upload h3K27ac HGSC cell line data ================================================================================================== #
+# tpDr_Celllines <- "/data/ChIPSeqAnalysis/Experiments/OC_Lines_H3K27Ac_GSE156275/results_HGSC_GSE156275/"
+# fileIDOC_Celllines <- c("SRR12454735_1", "SRR12454736_1", "SRR12454745", "SRR12454746", "SRR12454748", "SRR12454749")
+# bamIdExpInput_Celllines <- c("SRR12454737_1", "SRR12454737_1", "SRR12454747", "SRR12454747", "SRR12454750", "SRR12454750")
+# tissue_Celllines <- c("UWB1_289", "UWB1_289", "OAW42", "OAW42", "Kura", "Kura")
+# rep_Celllines <- c(1, 2, 1, 2, 1, 2)
+# 
+# 
+# # Upload h3k27ac HGSC primary data ==================================================================================================== #
+# tpDrOC_Primary <- "/data/ChIPSeqAnalysis/Experiments/HGSC_H3K27ac/results_HGSC_H3K27ac1/"
+# fileIDOC_Primary <- c("SRR8030178.sra", "SRR8030179.sra", "SRR8030180.sra", "SRR8030181.sra", "SRR8030182.sra")
+# bamIdExpInput_Primary <- c("SRR8030198.sra", "SRR8030199.sra", "SRR8030200.sra", "SRR8030201.sra", "SRR8030202.sra")
+# tissue_Primary <- rep("HGSCPrimary", 5)
+# rep_Primary  <- c(1, 2, 3, 4, 5)
+
+# Upload h3K27ac ClearCell cell line data ================================================================================================== #
+tpDr_Celllines <- "/data/ChIPSeqAnalysis/Experiments/OC_Lines_H3K27Ac_GSE156275/results_Clearcell_GSE156275//"
+fileIDOC_Celllines <- c("SRR12454754", "SRR12454755", "SRR12454728_1", "SRR12454757_1")
+bamIdExpInput_Celllines <- c("SRR12454756", "SRR12454756", "SRR12454729_1", "SRR12454723_1")
+tissue_Celllines <- c("JHOC5_1", "JHOC5_2", "RMGII_1", "ES2_1")
+rep_Celllines <- c(1, 2, 1, 1)
+
+# Upload h3k27ac ClearCell primary data ==================================================================================================== #
+tpDrOC_Primary <- "/data/ChIPSeqAnalysis/Experiments/Clearcell_H3K27ac//results_OC_lines_H3K27AC_ClearCell//"
+fileIDOC_Primary <- c("SRR8030168.sra", "SRR8030169.sra", "SRR8030170.sra", "SRR8030171.sra", "SRR8030172.sra")
+bamIdExpInput_Primary <- c("SRR8030188.sra", "SRR8030189.sra", "SRR8030190.sra", "SRR8030191.sra", "SRR8030192.sra")
+tissue_Primary <- rep("ClearCellPrimary", 5)
+rep_Primary  <- c(1, 2, 3, 4, 5)
+
+# Upload h3k27ac iOSE  ================================================================================================================ #
+tpDrHealthy <- "/data/ChIPSeqAnalysis/Experiments/HealthyOvary_Lines_H3K27ac_GSE68104/results_HealthyOv_GSE68104/"
+fileIDHealthy <- c("SRR1983941", "SRR1983942", "SRR1983951", "SRR1983952")
+bamIdHealthyInput <- c("SRR1983945", "SRR1983945", "SRR1983955", "SRR1983956")
+hlthySmpId <- c("IOE4_1", "IOE4_2", "IOE11_1", "IOE11_2")
+htlyRep <- c(1, 2, 1, 2)
+htlyTissue <- c("IOE4", "IOE4", "IOE11", "IOE11")
+
+# Create sample tables ================================================================================================================== #
+# Cell line sample table
+tissue_Healthy_Celllines <- c(htlyTissue, tissue_Celllines)
+rep_Healthy_Celllines <- c(htlyRep, rep_Celllines)
+sampleID_Healthy_Celllines <- paste(tissue_Healthy_Celllines, rep_Healthy_Celllines, sep = "_")
+
+sampleTableCelllines <- createDiffBindSampleTable(tpDrExp = tpDr_Celllines, tpDrHealthy = tpDrHealthy, sampleID = sampleID_Healthy_Celllines, 
+                                                       fileIDExp = fileIDOC_Celllines, fileIDHealthy = fileIDHealthy, bamFiles = T,
+                                                       bamFilesHealthInput = bamIdHealthyInput, bamFilesExpInput = bamIdExpInput_Celllines, 
+                                                       replicate = rep_Healthy_Celllines, tissue = tissue_Healthy_Celllines)
+# Primary sample table
+tissue_Healthy_Primaries <- c(htlyTissue, tissue_Primary)
+rep_Healthy_Primaries <- c(htlyRep, rep_Primary)
+sampleID_Healthy_Primaries <- paste(tissue_Healthy_Primaries, rep_Healthy_Primaries, sep = "_") 
+
+sampleTablePrimaries <- createDiffBindSampleTable(tpDrExp = tpDrOC_Primary, tpDrHealthy = tpDrHealthy, sampleID = sampleID_Healthy_Primaries, 
+                                                       fileIDExp = fileIDOC_Primary, fileIDHealthy = fileIDHealthy, bamFiles = T,
+                                                       bamFilesHealthInput = bamIdHealthyInput, bamFilesExpInput = bamIdExpInput_Primary, 
+                                                       replicate = rep_Healthy_Primaries, tissue = tissue_Healthy_Primaries)
+
+```
+
+## 3. Diffbind Analysis
+```{r}
+## Diffbind steps for cell lines
+# 1 Create cell line sample sheet
+dba_Cl <- dba(sampleSheet = sampleTableCelllines)
+# 2 Get the cell line counts
+dba_Cl_Cnt <- dba.count(dba_Cl, bParallel = TRUE, peaks = ghGrEn, summits = FALSE)
+# 3 Normalize the cell line data
+dba_Cl_NormDESeq2 <- dba.normalize(dba_Cl_Cnt,  method = DBA_DESEQ2)
+# 4 Get the cell line contrast
+dba_Cl_NormDESeq2_Contrast <- dba.contrast(dba_Cl_NormDESeq2, reorderMeta = list(Condition="OC"))
+# 5 Get the diffrential analysis from the cell lines
+dba_Cl_NormDESeq2_DA <- dba.analyze(dba_Cl_NormDESeq2_Contrast, bParallel = TRUE, )
+
+## Diffbind steps for primaries
+# 1 Create primaries sample sheet
+dba_Prm <- dba(sampleSheet = sampleTablePrimaries)
+# 2 Get the primaries counts
+dba_Prm_Cnt <- dba.count(dba_Prm, bParallel = TRUE, peaks = ghGrEn, summits = FALSE)
+# 3 Normalize the primaries data
+dba_Prm_NormDESeq2 <- dba.normalize(dba_Prm_Cnt,  method = DBA_DESEQ2)
+# 4 Get the primaries contrast
+dba_Prm_NormDESeq2_Contrast <- dba.contrast(dba_Prm_NormDESeq2, reorderMeta = list(Condition="OC"))
+# 5 Get the diffrential analysis from the primariess
+dba_Prm_NormDESeq2_DA <- dba.analyze(dba_Prm_NormDESeq2_Contrast, bParallel = TRUE, )
+
+```
+
+## 4. Get up/down regulated H3K27ac signal in enhancer sites
+```{r}
+# Fold change threshold  
+fcThres <- 1
+
+# Cell lines
+# 1 Get the cell line DE results
+dba_Cl_NormDESeq2_DA.report <- dba.report(dba_Cl_NormDESeq2_DA)
+# 2 Get the cell line up regulated peaks
+up_Cl <- dba_Cl_NormDESeq2_DA.report[dba_Cl_NormDESeq2_DA.report$Fold > fcThres]
+# 3 Get the cell line down regulated peaks
+dwn_Cl <- dba_Cl_NormDESeq2_DA.report[dba_Cl_NormDESeq2_DA.report$Fold < -fcThres]
+
+# Primaries
+# 1 Get the primary DE results
+dba_Prm_NormDESeq2_DA.report <- dba.report(dba_Prm_NormDESeq2_DA)
+# 2 Get the primary up regulated peaks
+up_Prm <- dba_Prm_NormDESeq2_DA.report[dba_Prm_NormDESeq2_DA.report$Fold > fcThres]
+# 3 Get the primary down regulated peaks
+dwn_Prm <- dba_Prm_NormDESeq2_DA.report[dba_Prm_NormDESeq2_DA.report$Fold < -fcThres]
+
+```
+
+## 5. Get the upregulated peaks 
+```{r}
+
+# Get the genehancer peaks which overlap with upregulated cell line peaks
+up_Cl_EnhancerIdx <- findOverlaps(ghGrEn, up_Cl)
+up_Cl_Enhancer <- ghGrEn[unique(up_Cl_EnhancerIdx@from)]
+
+# Get the genehancer peaks which overlap with upregulated primaries peaks
+up_Prm_EnhancerIdx <- findOverlaps(ghGrEn, up_Prm)
+up_Prm_Enhancer <- ghGrEn[unique(up_Prm_EnhancerIdx@from)]
+
+# Get the back ground peaks in cell lines
+bk_Cl_GR <- makeGRangesFromDataFrame(dba_Cl_NormDESeq2_DA$peaks[[1]])
+bk_Cl_EnhancerIdx <- findOverlaps(ghGrEn, bk_Cl_GR)
+bk_Cl_Enhancer <- ghGrEn[unique(bk_Cl_EnhancerIdx@from)]
+
+# Get the back ground peaks in primaries
+bk_Prm_GR <- makeGRangesFromDataFrame(dba_Prm_NormDESeq2_DA$peaks[[1]])
+bk_Prm_EnhancerIdx <- findOverlaps(ghGrEn, bk_Prm_GR)
+bk_Prm_Enhancer <- ghGrEn[unique(bk_Prm_EnhancerIdx@from)]
+
+```
+
+## 6. Create final overlapping peak sets and write to MAGIC input file
+```{r}
+
+# Get the overlaps between cell lines and primaries
+# Back ground
+bk_Ovlp_Cl_Prm_EnhancerIdx <- findOverlaps(bk_Cl_Enhancer, bk_Prm_Enhancer)
+bk_Ovlp_Cl_Prm_Enhancer <- bk_Cl_Enhancer[unique(bk_Ovlp_Cl_Prm_EnhancerIdx@from)]
+
+# foreground
+up_Ovlp_Cl_Prm_EnhancerIdx <- findOverlaps(up_Cl_Enhancer, up_Prm_Enhancer)
+up_Ovlp_Cl_Prm_Enhancer <- up_Cl_Enhancer[unique(up_Ovlp_Cl_Prm_EnhancerIdx@from)]
+# Write the input file for MAGIC
+
+magicEnh <- data.frame(paste0("GENEHANCER_", str_remove(bk_Ovlp_Cl_Prm_Enhancer@ranges@NAMES, "^X0*")), "" )
+colnames(magicEnh) <- c("Background", paste0(prefix, "_enhancers"))
+magicEnh[1:length(up_Ovlp_Cl_Prm_Enhancer) , 2] <- paste0("GENEHANCER_", str_remove(up_Ovlp_Cl_Prm_Enhancer@ranges@NAMES, "^X0*"))
+write.table(magicEnh, paste0(outDr, prefix, ".txt"), row.names = F, quote = F, sep = "\t")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

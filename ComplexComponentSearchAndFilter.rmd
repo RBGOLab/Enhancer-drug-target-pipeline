@@ -1,0 +1,77 @@
+---
+title: "IdentifyComplexesAndFilterByRNASeq.rmd"
+author: "David James"
+date: "15/02/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load libraries
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+source("/data/DaveJames/OC_Epigenetics_Paper/ScriptsForGitHub/pharamacoGenomicsFunctions.R")
+library(org.Hs.eg.db)
+library(rjson)
+library(stringr)
+library(dplyr)
+library(plyr)
+library(EnsDb.Hsapiens.v86)
+library(tidyverse)
+library(rjson)
+
+```
+
+## 1 Input/output files
+
+```{r pressure, echo=FALSE}
+
+MAGIC_Pth <- "/data/DaveJames/OC_Epigenetics_Paper/MAGIC_Enhancers050222_AllInBk/"
+MAGIC_TF_Fn <- "Clearcell_AllBk_FinalTFlist.csv"
+RNA_GnCntPth <- "/data/RNASeqAnalysis/Experiments/GSE121103_OC_TissueSamples/results/"
+RNA_GnTb <- "Clearcell"
+
+outPth <- "/data/DaveJames/OC_Epigenetics_Paper/ScriptsForGitHub/testScripts/"
+outFN <- "clearCell_Complexes"
+
+# load the CORUM complex
+cmplxDf <- fromJSON(file = "/data/DaveJames/OC_Epigenetics_Paper/CORUM_Complexes/coreComplexes.json")
+
+```
+
+## 2 Search for gene expression
+```{r}
+
+  r <- tfsRNA_Seq(MAGIC_TF_Fn, RNA_GnTb,
+                  MAGIC_Pth, RNA_GnCntPth)
+
+```
+
+## 3 Search for complex components
+```{r}
+
+    enhPrimCmplxGE <- GetCmplexes(cmplxDf, r$SYMBOL)
+    enhPrimCmplxGE_Proteins <- enhPrimCmplxGE %>% separate_rows(Proteins, sep = ";")
+    enhPrimCmplxGE_ProteinsFiltLowExp <- checkProteinExpression(enhPrimCmplxGE_Proteins, RNA_GeneCount_Path, RNA_GnTb)
+
+    enhCmplx_OnlyTFsGE <- unique(enhPrimCmplxGE_ProteinsFiltLowExp[,1:4])
+    idx <- enhCmplx_OnlyTFsGE$Complex_Name == "No complex"
+    
+    
+    enhCmplx_OnlyTFsGE$Proteins <-
+      unlist(lapply(enhCmplx_OnlyTFsGE$Complex_Name, function(x){paste(enhPrimCmplxGE_ProteinsFiltLowExp$Proteins[enhPrimCmplxGE_ProteinsFiltLowExp$Complex_Name== x],  collapse = " | " ) }))
+    #browser()
+    enhCmplx_OnlyTFsGE$Proteins[idx] <- ""
+
+    write.csv(enhCmplx_OnlyTFsGE, paste0(outPth, outFN , ".csv"),  quote = FALSE)
+    
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
