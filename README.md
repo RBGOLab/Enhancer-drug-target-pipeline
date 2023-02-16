@@ -29,5 +29,18 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 3. BAM and corresponding MACS2 H3K27ac ChIP peak file from cancer tissue
 4. BAM and corresponding MACS2 H3K27ac ChIP peak file from healthy cell lines
 ### Outputs:
-1.Text file containing two columns with list of background enhancers and upregulated enhancers
+1. Upregulated enhancer site text file (containing two columns with list of background enhancers and upregulated enhancers)
+### Description
+
+## 3 Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites
+
+### Scripts: 
+1. MAGIC_1_1.py
+### Inputs:
+1. MAGIC enhancer MTX file
+2. Upregulated enhancer site text file
+### Outputs:
+1. Summary of upregulated TFs xls
+2. Details of upregulated TFs xls
+3. For further details see
 ### Description
