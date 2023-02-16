@@ -79,7 +79,8 @@ Each enriched TF identified by MAGIC is put through an empircal test to check if
 2. List of TFs with enriched binding in csv format
 3. Directory containing gene count tables from STAR aligner (Dobin A, Davis CA, Schlesinger F, Drenkow J, Zaleski C, Jha S, Batut P, Chaisson M, Gingeras TR. STAR: ultrafast universal RNA-seq aligner. Bioinformatics. 2013 Jan 1;29(1):15-21. doi: 10.1093/bioinformatics/bts635. Epub 2012 Oct 25. PMID: 23104886; PMCID: PMC3530905., https://github.com/alexdobin/STAR)
 ### Outputs:
-1. CSV file containing complexes which contain enriched TFs and all component proteins
+1. Complex centred CSV file containing complexes which contain enriched TFs and all component proteins
+2. Protein centred CSV of all proteins identified in complexes 
 
 ### Description
 Identifies all complexes in CORUM DB ( Tsitsiridis G, Steinkamp R, Giurgiu M, Brauner B, Fobo G, Frishman G, Montrone C, Ruepp A. CORUM: the comprehensive resource of mammalian protein complexes–2022. Nucleic Acids Res. 2022 Nov 16. doi: 10.1093/nar/gkac1015. ,http://mips.helmholtz-muenchen.de/corum/) which contain one or more of the TFs with enriched binding. Gene count tables from RNA-seq experiments, corresponding to the cancer of interest, are used to filter out complexes which contain 
@@ -89,9 +90,14 @@ Identifies all complexes in CORUM DB ( Tsitsiridis G, Steinkamp R, Giurgiu M, Br
 ### Scripts: 
 1. GetProteinInteractionsAndCompounds.rmd
 ### Inputs:
-1. 
+1. Protein centred CSV of all proteins identified in complexes from ComplexComponentSearchAndFilter.rmd
+2. Stitch database TSV containing all protein/chemical interactions (can be downloaded from STITCHwebsite http://stitch.embl.de/cgi/download.pl?UserId=5ns76rjpXdqG&sessionId=ENQw3vOuwuFK&species_text=Homo+sapiens)
+3. Chembl database (installed locally)
+4. 
 ### Outputs:
-1.
+1. CSV file containing compounds which target proteins in identified complexes including trial status
 ### Dependencies
-1. Local installation of chembl database
+1. Local installation of chembl MYSQL database
 ### Description
+Using the 
+
