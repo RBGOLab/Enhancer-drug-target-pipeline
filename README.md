@@ -1,9 +1,10 @@
 # Enhancer Drug Targets
-Identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data
+Scripts used for identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data from **Paper reference**.
 
 ![Pharmacogenomics Pipeline](https://github.com/RBGO-Lab/EnhancerDrugTargetPipeline/blob/main/Figure1.png?raw=true)
+TF target pipeline 
 
-## 1 Create Enhancer based MAGIC matrix
+## 1 Create Enhancer based MAGIC matrix (Step 5)
 
 ### Scripts: 
 1. CreateEnhancerMAGICMatrix.r
@@ -21,7 +22,7 @@ Once files are selected, use the Download button to download a text file contain
 
 To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, use the r script 'CreateEnhancerMAGICMatrix.r'. This requires a copy of the geneHancer database in gff format. The 2017 version can be downloaded directly from GeneCards https://www.genecards.org/, and the latest version can be obtained by request.  
 
-## 2 DifferentialAnalysis of H3K27ac Enhancer Sites
+## 2 Differential Analysis of H3K27ac Enhancer Sites (Step 3 + 4)
 
 ### Scripts: 
 1. DifferentialAnalysisOfEnhancerSites.rmd
@@ -34,7 +35,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 1. Upregulated enhancer site text file (containing two columns with list of background enhancers and upregulated enhancers)
 ### Description
 
-## 3 Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites
+## 3 Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites (Step 5)
 
 ### Scripts: 
 1. MAGIC_1_1.py
@@ -47,7 +48,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 3. For further details see
 ### Description
 
-## 4 Filter MAGIC results by enriched Motifs
+## 4 Filter MAGIC results by enriched Motifs (Step 6)
 
 ### Scripts: 
 1. MotifSearch.rmd
@@ -57,7 +58,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 1. 
 ### Description
 
-## 5 Identify complexes enriched TFs are members of and filter by expression data
+## 5 Identify complexes enriched TFs are members of and filter by expression data (Step 7)
 
 ### Scripts: 
 1. ComplexComponentSearchAndFilter.rmd
@@ -68,7 +69,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 1. 
 ### Description
 
-## 6 Identify protein chemical interactions and identify compounds
+## 6 Identify protein chemical interactions and identify compounds (Step 8)
 
 ### Scripts: 
 1. GetProteinInteractionsAndCompounds.rmd
