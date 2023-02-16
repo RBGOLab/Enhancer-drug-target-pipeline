@@ -4,7 +4,7 @@ Scripts used for identification of ovarian cancer subtype specific drug targets 
 ![Pharmacogenomics Pipeline](https://github.com/RBGO-Lab/EnhancerDrugTargetPipeline/blob/main/Figure1.png)
 TF target pipeline 
 
-## 1) Create Enhancer based MAGIC matrix (Step 5)
+## 1) Create Enhancer based MAGIC matrix (Pipe line Step 5)
 
 ### Scripts: 
 1. CreateEnhancerMAGICMatrix.r
@@ -22,7 +22,7 @@ Once files are selected, use the Download button to download a text file contain
 
 To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, use the r script 'CreateEnhancerMAGICMatrix.r'. This requires a copy of the geneHancer database in gff format. The 2017 version can be downloaded directly from GeneCards https://www.genecards.org/, and the latest version can be obtained by request.  
 
-## 2) Differential Analysis of H3K27ac Enhancer Sites (Step 3 + 4)
+## 2) Differential Analysis of H3K27ac Enhancer Sites (Pipe line Step 3 + 4)
 
 ### Scripts: 
 1. DifferentialAnalysisOfEnhancerSites.rmd
@@ -39,7 +39,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 Identifies enhancer sites annoatated in GeneHancer database which are signifcantly upregulated in cancer compared with corresponding healthy samples from 
 H3K27ac histone ChIP-seq datasets. DiffBind package used for differential analysis (Stark R, Brown G (2011). DiffBind: differential binding analysis of ChIP-Seq peak data, https://bioconductor.org/packages/release/bioc/html/DiffBind.html) . The output from this script is a list of upregulated enhancer locations and a background list of all enhancers within the cancer datasets.   
 
-## 3) Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites (Step 5)
+## 3) Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites (Pipe line Step 5)
 
 ### Scripts: 
 1. MAGIC_1_1.py
@@ -54,7 +54,7 @@ H3K27ac histone ChIP-seq datasets. DiffBind package used for differential analys
 
 MAGIC algorithm (Roopra A (2020) MAGIC: A tool for predicting transcription factors and cofactors driving gene sets using ENCODE data. PLOS Computational Biology 16(4): e1007800., https://github.com/asroopra/MAGIC) used to identify TFs with binding significantly enriched in upregulated enhancer sites. 
 
-## 4) Filter MAGIC results by enriched Motifs (Step 6)
+## 4) Filter MAGIC results by enriched Motifs (Pipe line Step 6)
 
 ### Scripts: 
 1. MotifSearch.rmd
@@ -69,7 +69,7 @@ MAGIC algorithm (Roopra A (2020) MAGIC: A tool for predicting transcription fact
 ### Description
 Each enriched TF identified by MAGIC is put through an empircal test to check if its motif is significantly enriched within the upregulated enhancer sites. This acts as a further filtering step for TF binding.   
 
-## 5) Identify complexes enriched TFs are components, and filter by expression data (Step 7 + 8)
+## 5) Identify complexes enriched TFs are components, and filter by expression data (Pipe line Step 7 + 8)
 
 ### Scripts: 
 1. ComplexComponentSearchAndFilter.rmd
@@ -85,7 +85,7 @@ Each enriched TF identified by MAGIC is put through an empircal test to check if
 ### Description
 Identifies all complexes in CORUM DB ( Tsitsiridis G, Steinkamp R, Giurgiu M, Brauner B, Fobo G, Frishman G, Montrone C, Ruepp A. CORUM: the comprehensive resource of mammalian protein complexes–2022. Nucleic Acids Res. 2022 Nov 16. doi: 10.1093/nar/gkac1015. ,http://mips.helmholtz-muenchen.de/corum/) which contain one or more of the TFs with enriched binding. Gene count tables from RNA-seq experiments, corresponding to the cancer of interest, are used to filter out complexes which contain 
 
-## 6) Identify protein chemical interactions and identify compounds (Step 8)
+## 6) Identify protein chemical interactions and identify compounds (Pipe line Step 8)
 
 ### Scripts: 
 1. GetProteinInteractionsAndCompounds.rmd
