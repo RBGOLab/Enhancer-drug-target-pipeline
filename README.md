@@ -1,5 +1,5 @@
 # Enhancer Drug Targets
-Scripts used for identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data from **Paper reference**. Example input and output files are provided, and comprehensive isntructions for each script and the pipeline steps which the correspond to are outlined below.
+Scripts used for identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data from **PAPER REFERENCE TO GO HERE**. Example input and output files are provided, and comprehensive isntructions for each script and the pipeline steps which the correspond to are outlined below.
 
 ![Pharmacogenomics Pipeline](https://github.com/RBGO-Lab/EnhancerDrugTargetPipeline/blob/main/Figure1.png)
 TF target pipeline 
