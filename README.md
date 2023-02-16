@@ -1,6 +1,8 @@
 # Enhancer Drug Targets
 Scripts used for identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data from **PAPER REFERENCE TO GO HERE**. Example input and output files are provided, and comprehensive isntructions for each script and the pipeline steps which the correspond to are outlined below.
 
+All R scripts and mark downs tested using R 4.0.5. R library dependencies are listed at the top of each script file. MAGIC code downloaded from https://github.com/asroopra/MAGIC and ammended to allow running on Unix systems. Code tested on Python version 3.7. 
+
 ![Pharmacogenomics Pipeline](https://github.com/RBGO-Lab/EnhancerDrugTargetPipeline/blob/main/Figure1.png)
 TF target pipeline 
 
