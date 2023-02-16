@@ -44,3 +44,34 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 2. Details of upregulated TFs xls
 3. For further details see
 ### Description
+
+## 4 Filter MAGIC results by enriched Motifs
+
+### Scripts: 
+1. MotifSearch.rmd
+### Inputs:
+1. 
+### Outputs:
+1. 
+### Description
+
+## 5 Identify complexes enriched TFs are members of and filter by expression data
+
+### Scripts: 
+1. ComplexComponentSearchAndFilter.rmd
+2. pharamacoGenomicsFunctions.R
+### Inputs:
+1. 
+### Outputs:
+1. 
+### Description
+
+## 6 Identify protein chemical interactions and identify compounds
+
+### Scripts: 
+1. GetProteinInteractionsAndCompounds.rmd
+### Inputs:
+1. 
+### Outputs:
+1. 
+### Description
