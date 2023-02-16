@@ -1,7 +1,7 @@
 # Enhancer Drug Targets
 Identification of ovarian cancer subtype specific drug targets using epigenomic and transcriptomic data
 
-![Pharmacogenomics Pipeline](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![Pharmacogenomics Pipeline](https://github.com/RBGO-Lab/EnhancerDrugTargetPipeline/blob/main/Figure1.png?raw=true)
 
 ## 1 Create Enhancer based MAGIC matrix
 
