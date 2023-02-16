@@ -67,20 +67,22 @@ MAGIC algorithm (Roopra A (2020) MAGIC: A tool for predicting transcription fact
 ### Dependencies
 1. Local installation of meme suite https://meme-suite.org/meme/doc/install.html?man_type=web
 ### Description
-Each enriched TF identified by MAGIC is put through an empircal test to check if its motif is significantly enriched within the upregulated enhancer sites. This acts as a further filitering step.   
+Each enriched TF identified by MAGIC is put through an empircal test to check if its motif is significantly enriched within the upregulated enhancer sites. This acts as a further filtering step for TF binding.   
 
-## 5) Identify complexes enriched TFs are members of and filter by expression data (Step 7 + 8)
+## 5) Identify complexes enriched TFs are components, and filter by expression data (Step 7 + 8)
 
 ### Scripts: 
 1. ComplexComponentSearchAndFilter.rmd
 2. pharamacoGenomicsFunctions.R
 ### Inputs:
-1. 
+1. CORUM protein complex database in json format (can be downloaded from http://mips.helmholtz-muenchen.de/corum/#download)
+2. List of TFs with enriched binding in csv format
+3. Directory containing gene count tables from STAR aligner (Dobin A, Davis CA, Schlesinger F, Drenkow J, Zaleski C, Jha S, Batut P, Chaisson M, Gingeras TR. STAR: ultrafast universal RNA-seq aligner. Bioinformatics. 2013 Jan 1;29(1):15-21. doi: 10.1093/bioinformatics/bts635. Epub 2012 Oct 25. PMID: 23104886; PMCID: PMC3530905., https://github.com/alexdobin/STAR)
 ### Outputs:
-1. 
-### Dependencies
-1. Local installation of chembl database
+1. CSV file containing complexes which contain enriched TFs and all component proteins
+
 ### Description
+Identifies all complexes in CORUM DB ( Tsitsiridis G, Steinkamp R, Giurgiu M, Brauner B, Fobo G, Frishman G, Montrone C, Ruepp A. CORUM: the comprehensive resource of mammalian protein complexes–2022. Nucleic Acids Res. 2022 Nov 16. doi: 10.1093/nar/gkac1015. ,http://mips.helmholtz-muenchen.de/corum/) which contain one or more of the TFs with enriched binding. Gene count tables from RNA-seq experiments, corresponding to the cancer of interest, are used to filter out complexes which contain 
 
 ## 6) Identify protein chemical interactions and identify compounds (Step 8)
 
@@ -89,5 +91,7 @@ Each enriched TF identified by MAGIC is put through an empircal test to check if
 ### Inputs:
 1. 
 ### Outputs:
-1. 
+1.
+### Dependencies
+1. Local installation of chembl database
 ### Description
