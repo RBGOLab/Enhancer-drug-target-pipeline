@@ -181,8 +181,8 @@ for (dx in 1:length(tfEnhancerColoc)){
 
 pNotNullIdx <- !unlist(lapply(tfMOTIF_AllEnhancersPValue, is.null))
 
-outDf <- data.frame(Facs = HGSC_Facs, P = 100)
+outDf <- data.frame(Facs = Facs, P = 100)
 outDf$P[pNotNullIdx] <- unlist(tfMOTIF_AllEnhancersPValue)
 
-write.csv(outDf, file.path(outDr, outFn, ".csv"), quote = F)
+write.csv(outDf, paste0(outDr, outFn, ".csv"), quote = F)
 ```
