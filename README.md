@@ -93,11 +93,10 @@ Identifies all complexes in CORUM DB ( Tsitsiridis G, Steinkamp R, Giurgiu M, Br
 1. Protein centred CSV of all proteins identified in complexes from ComplexComponentSearchAndFilter.rmd
 2. Stitch database TSV containing all protein/chemical interactions (can be downloaded from STITCHwebsite http://stitch.embl.de/cgi/download.pl?UserId=5ns76rjpXdqG&sessionId=ENQw3vOuwuFK&species_text=Homo+sapiens)
 3. Chembl database (installed locally)
-4. 
 ### Outputs:
 1. CSV file containing compounds which target proteins in identified complexes including trial status
 ### Dependencies
 1. Local installation of chembl MYSQL database
 ### Description
-Using the 
+Using STITCH database for protein/chemical interaction scores (Kuhn M, von Mering C, Campillos M, Jensen LJ, Bork P. STITCH: interaction networks of chemicals and proteins. Nucleic Acids Res. 2008 Jan;36(Database issue):D684-8. doi: 10.1093/nar/gkm795. Epub 2007 Dec 15. PMID: 18084021; PMCID: PMC2238848., http://stitch.embl.de/cgi/input.pl?UserId=5ns76rjpXdqG&sessionId=ENQw3vOuwuFK) and Chembl database for clincial trial data, find potential compounds which target proteins within identified complexes 
 
