@@ -31,9 +31,13 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 2. BAM and corresponding MACS2 H3K27ac ChIP peak file from cancer cell lines
 3. BAM and corresponding MACS2 H3K27ac ChIP peak file from cancer tissue
 4. BAM and corresponding MACS2 H3K27ac ChIP peak file from healthy cell lines
+5. BAM and corresponding MACS2 H3K27ac ChIP peak file from healthy tissue (if available)
 ### Outputs:
 1. Upregulated enhancer site text file (containing two columns with list of background enhancers and upregulated enhancers)
 ### Description
+
+Identifies enhancer sites annoatated in GeneHancer database which are upregulated in cancer compared with corresponding healthy samples from 
+H3K27ac histone ChIP-seq datasets. The output from this script is a list of upregulated enhancer locations and a background list of all enhancers within the cancer datasets.  
 
 ## 3) Identify Enriched TF binding in differentially expressed H3K27ac enhancer sites (Step 5)
 
@@ -45,7 +49,7 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 ### Outputs:
 1. Summary of upregulated TFs xls
 2. Details of upregulated TFs xls
-3. For further details see
+3. For further details see https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1007800 and https://github.com/asroopra/MAGIC
 ### Description
 
 ## 4) Filter MAGIC results by enriched Motifs (Step 6)
@@ -56,6 +60,8 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 1. 
 ### Outputs:
 1. 
+### Dependencies
+1. Local installation of meme suite https://meme-suite.org/meme/doc/install.html?man_type=web
 ### Description
 
 ## 5) Identify complexes enriched TFs are members of and filter by expression data (Step 7 + 8)
@@ -67,6 +73,8 @@ To generate a 'MAGIC matrix' file based on GeneHancer known enhancer locations, 
 1. 
 ### Outputs:
 1. 
+### Dependencies
+1. Local installation of chembl database
 ### Description
 
 ## 6) Identify protein chemical interactions and identify compounds (Step 8)
