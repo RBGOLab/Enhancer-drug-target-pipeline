@@ -69,7 +69,12 @@ cmplxDf <- fromJSON(file = "/data/DaveJames/OC_Epigenetics_Paper/CORUM_Complexes
     #browser()
     enhCmplx_OnlyTFsGE$Proteins[idx] <- ""
 
+    write.table(enhPrimCmplxGE_ProteinsFiltLowExp, paste0(outPth, outFN , "PrimeEnhComplexesGE.csv"),
+                sep = "\t", row.names = F, quote = F)
+    
     write.csv(enhCmplx_OnlyTFsGE, paste0(outPth, outFN , ".csv"),  quote = FALSE)
+    
+    
     
 ```
 

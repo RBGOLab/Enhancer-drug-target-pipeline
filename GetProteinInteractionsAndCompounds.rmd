@@ -30,7 +30,7 @@ outFn <- "TargetCompounds"
 
 ```{r}
 chemProtInt <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/9606.protein_chemical.links.detailed.v5.0.tsv", sep = "\t", header = T)
-chemChemInt <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/chemical_chemical.links.detailed.v5.0.tsv", sep = "\t", header = T)
+#chemChemInt <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/chemical_chemical.links.detailed.v5.0.tsv", sep = "\t", header = T)
 
 chemSources <- read.table("/data/DaveJames/OC_Epigenetics_Paper/STITCH_Interactions/chemical.sources.v5.0.tsv", sep = "\t", header = T, row.names = NULL)
 colnames(chemSources) <- c("CIDm","CIDs", "Source", "ID")
